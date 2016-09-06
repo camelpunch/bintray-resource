@@ -31,5 +31,14 @@ module BintrayResource
         end
       end
     end
+
+    def test_raises_exception_when_glob_has_no_matches
+      Dir.mktmpdir do |dir|
+        path = Pathname(dir)
+        assert_raises(NoGlobMatches) do
+          Reader.new.read(path.join("non-existent-*"))
+        end
+      end
+    end
   end
 end
