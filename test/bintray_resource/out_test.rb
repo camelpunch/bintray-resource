@@ -7,27 +7,31 @@ module BintrayResource
     def setup
       @input = {
         "source" => {
-          "api_key"     => "abcde123456",
-          "api_version" => "v1",
-          "package"     => "rabbitmq_clusterer",
-          "repo"        => "community-plugins",
-          "subject"     => "rabbitmq",
-          "username"    => "myuser",
-          "version"     => "3.6.5",
+          "api_key"         => "abcde123456",
+          "api_version"     => "v1",
+          "package"         => "rabbitmq_clusterer",
+          "repo"            => "community-plugins",
+          "subject"         => "rabbitmq",
+          "username"        => "myuser",
         },
         "params" => {
-          "file"        => "my-source/built-*.ez",
-          "publish"     => true,
+          "file"            => "my-source/built-*.ez",
+          "publish"         => true,
+          "version_regexp"  => "my-source/(.*)/built-.*",
         },
       }
     end
 
     def test_uploads_contents_of_file
       reader = ReaderStub.new(
-        stub: "/sources/path/my-source/built-*.ez",
+        stub: {
+          glob: "/sources/path/my-source/built-*.ez",
+          regexp:  "my-source/(.*)/built-.*",
+        },
         to_return: {
-          "basename" => "built-package.ez",
-          "contents" => "my-sweet-file-contents"
+          "basename"  => "built-package.ez",
+          "contents"  => "my-sweet-file-contents",
+          "version"   => "3.6.5",
         }
       )
       http = FakeHttp.new
@@ -46,16 +50,24 @@ module BintrayResource
     end
 
     def test_emits_version_passed_to_it
-      retval = Out.new(reader: ReaderStub.new, http: FakeHttp.new).
+      reader = ReaderStub.new(to_return: { "version" => "1.2.3" })
+      retval = Out.new(reader: reader, http: FakeHttp.new).
         call("/full/sources", @input)
-      assert_equal({ "ref" => "3.6.5" }, retval["version"])
+      assert_equal({ "ref" => "1.2.3" }, retval["version"])
     end
 
     def test_result_of_put_is_placed_in_metadata
       resource = Out.new(
         reader: ReaderStub.new(
-          stub: "/sources/path/my-source/built-package.ez",
-          to_return: "my-sweet-file-contents"
+          stub: {
+            glob: "/sources/path/my-source/built-package.ez",
+            regexp: "my-source/(.*)/built-.*",
+          },
+          to_return: {
+            "basename" => "",
+            "contents" => "",
+            "version" => "",
+          }
         ),
         http: FakeHttp.new(200, '{"result":"success"}')
       )
@@ -72,10 +84,7 @@ module BintrayResource
 
     def test_failure_raises_exception
       resource = Out.new(
-        reader: ReaderStub.new(
-          stub: "/sources/path/my-source/built-package.ez",
-          to_return: "my-sweet-file-contents"
-        ),
+        reader: ReaderStub.new,
         http: FakeHttp.new(400, '{"result":"failure"}')
       )
       assert_raises(BintrayResource::FailureResponse) do
@@ -99,16 +108,20 @@ module BintrayResource
     end
 
     class ReaderStub
-      def initialize(stub: nil, to_return: nil)
-        @stubbed_path = stub
+      def initialize(stub: {}, to_return: {})
+        @stubs = stub
         @read_return = to_return
       end
 
-      def read(actual_path)
-        if actual_path == @stubbed_path
+      def read(actual_glob, actual_regexp)
+        if @stubs.empty? || actual_glob == @stubs[:glob] && actual_regexp == @stubs[:regexp]
           @read_return
         else
-          { path: "default/path", contents: "default contents" }
+          {
+            "basename" => "notstubbed",
+            "contents" => "notstubbed",
+            "version" => "notstubbed",
+          }
         end
       end
     end

@@ -14,16 +14,21 @@ module BintrayResource
     private :reader, :http
 
     def call(sources_dir, opts)
-      subject, repo, package, version,
-        api_version, username, api_key = opts["source"].
-        values_at(*%w(subject repo package version
-                  api_version username api_key))
-      file, publish      = opts["params"].values_at(*%w(file publish))
+      subject, repo, package, api_version, username, api_key =
+        opts["source"].values_at(
+        *%w(subject repo package api_version username api_key)
+      )
+      file, publish, version_regexp =
+        opts["params"].values_at(
+          *%w(file publish version_regexp)
+      )
 
-      full_glob          = Pathname(sources_dir).join(file)
-      uri_publish        = publish ? "1" : "0"
-      contents, basename = reader.read(full_glob.to_s).
-        values_at(*%w(contents basename))
+      full_glob = Pathname(sources_dir).join(file)
+      uri_publish = publish ? "1" : "0"
+      contents, basename, version =
+        reader.read(full_glob.to_s, version_regexp).values_at(
+          *%w(contents basename version)
+      )
 
       response = http.put(
         "https://#{username}:#{api_key}@bintray.com/api/#{api_version}" +

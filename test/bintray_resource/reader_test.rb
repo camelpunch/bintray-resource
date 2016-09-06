@@ -5,23 +5,24 @@ require_relative '../../lib/bintray_resource/reader'
 
 module BintrayResource
   class TestReader < Minitest::Test
-    def test_reads_file_without_glob
-      Dir.mktmpdir do |dir|
-        path = Pathname(dir)
-        File.write(path.join("myfile"), "my contents")
-        result = Reader.new.read(path.join("myfile"))
-        assert_equal "my contents", result["contents"]
-        assert_equal "myfile", result["basename"]
-      end
-    end
-
     def test_reads_file_with_single_glob_match
       Dir.mktmpdir do |dir|
         path = Pathname(dir)
         File.write(path.join("myfile"), "single match")
-        result = Reader.new.read(path.join("my*"))
+        result = Reader.new.read(path.join("my*"), ".*")
         assert_equal "single match", result["contents"]
         assert_equal "myfile", result["basename"]
+        assert_nil result["version"]
+      end
+    end
+
+    def test_pulls_version_from_first_regexp_group
+      Dir.mktmpdir do |dir|
+        path = Pathname(dir)
+        path.join("my-1.2.3").mkpath
+        File.write(path.join("my-1.2.3", "file"), "single match")
+        result = Reader.new.read(path.join("my*/*"), "my-(.*)/file")
+        assert_equal("1.2.3", result["version"])
       end
     end
 
@@ -31,7 +32,7 @@ module BintrayResource
         File.write(path.join("file1"), "1st match")
         File.write(path.join("file2"), "2nd match")
         assert_raises(MultipleGlobMatches) do
-          Reader.new.read(path.join("file?"))
+          Reader.new.read(path.join("file?"), ".*")
         end
       end
     end
@@ -40,7 +41,7 @@ module BintrayResource
       Dir.mktmpdir do |dir|
         path = Pathname(dir)
         assert_raises(NoGlobMatches) do
-          Reader.new.read(path.join("non-existent-*"))
+          Reader.new.read(path.join("non-existent-*"), ".*")
         end
       end
     end
