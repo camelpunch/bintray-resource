@@ -8,4 +8,4 @@ out = BintrayResource::Out.new(
   reader: BintrayResource::Reader.new, 
   http: BintrayResource::Http.new
 )
-puts out.call(ARGV.first, opts)
+puts JSON.generate(out.call(ARGV.first, opts))
