@@ -10,7 +10,8 @@ module BintrayResource
       elsif entries.empty?
         raise NoGlobMatches
       end
-      File.read(entries.first)
+      { "contents" => File.read(entries.first),
+        "basename" => File.basename(entries.first) }
     end
   end
 end

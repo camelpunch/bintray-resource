@@ -9,7 +9,9 @@ module BintrayResource
       Dir.mktmpdir do |dir|
         path = Pathname(dir)
         File.write(path.join("myfile"), "my contents")
-        assert_equal "my contents", Reader.new.read(path.join("myfile"))
+        result = Reader.new.read(path.join("myfile"))
+        assert_equal "my contents", result["contents"]
+        assert_equal "myfile", result["basename"]
       end
     end
 
@@ -17,7 +19,9 @@ module BintrayResource
       Dir.mktmpdir do |dir|
         path = Pathname(dir)
         File.write(path.join("myfile"), "single match")
-        assert_equal "single match", Reader.new.read(path.join("my*"))
+        result = Reader.new.read(path.join("my*"))
+        assert_equal "single match", result["contents"]
+        assert_equal "myfile", result["basename"]
       end
     end
 
