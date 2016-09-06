@@ -4,5 +4,8 @@ require_relative 'lib/bintray_resource'
 require 'json'
 
 opts = JSON.parse($stdin.gets)
-out = BintrayResource::Out.new(reader: File, http: BintrayResource::Http.new)
+out = BintrayResource::Out.new(
+  reader: BintrayResource::Reader.new, 
+  http: BintrayResource::Http.new
+)
 puts out.call(ARGV.first, opts)
