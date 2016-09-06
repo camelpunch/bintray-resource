@@ -35,8 +35,8 @@ module BintrayResource
       raise FailureResponse, response.body if response.code >= 400
 
       { "version"  => { "ref" => version },
-        "metadata" => { "name" => "response",
-                        "value" => response.body } }
+        "metadata" => [{ "name" => "response",
+                         "value" => response.body }] }
     end
   end
 end

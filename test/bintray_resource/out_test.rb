@@ -59,8 +59,10 @@ module BintrayResource
       retval = resource.call("/sources/path", @input)
 
       assert_equal(
-        { "name" => "response",
-          "value" => '{"result":"success"}' },
+        [
+          { "name" => "response",
+            "value" => '{"result":"success"}' },
+        ],
         retval["metadata"]
       )
     end
