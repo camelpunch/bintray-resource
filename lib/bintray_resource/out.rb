@@ -20,10 +20,10 @@ module BintrayResource
                   api_version username api_key))
       file, publish = opts["params"].values_at(*%w(file publish))
 
-      full_path = Pathname(sources_dir).join(file)
-      uri_publish = publish ? "1" : "0"
-      contents  = reader.read(full_path.to_s)
-      file_path = full_path.basename
+      full_path     = Pathname(sources_dir).join(file)
+      uri_publish   = publish ? "1" : "0"
+      contents      = reader.read(full_path.to_s)
+      file_path     = full_path.basename
 
       response = http.put(
         "https://#{username}:#{api_key}@bintray.com/api/#{api_version}" +
