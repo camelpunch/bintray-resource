@@ -16,7 +16,7 @@ module BintrayResource
           "version"     => "3.6.5",
         },
         "params" => {
-          "file"        => "my-source/built-package.ez",
+          "file"        => "my-source/built-*.ez",
           "publish"     => true,
         },
       }
@@ -24,8 +24,11 @@ module BintrayResource
 
     def test_uploads_contents_of_file
       reader = ReaderStub.new(
-        stub: "/sources/path/my-source/built-package.ez",
-        to_return: "my-sweet-file-contents"
+        stub: "/sources/path/my-source/built-*.ez",
+        to_return: {
+          "basename" => "built-package.ez",
+          "contents" => "my-sweet-file-contents"
+        }
       )
       http = FakeHttp.new
       resource = Out.new(reader: reader, http: http)
@@ -98,14 +101,14 @@ module BintrayResource
     class ReaderStub
       def initialize(stub: nil, to_return: nil)
         @stubbed_path = stub
-        @contents = to_return
+        @read_return = to_return
       end
 
       def read(actual_path)
         if actual_path == @stubbed_path
-          @contents
+          @read_return
         else
-          "default contents"
+          { path: "default/path", contents: "default contents" }
         end
       end
     end
