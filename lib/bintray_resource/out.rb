@@ -46,13 +46,13 @@ module BintrayResource
     end
 
     def list_in_downloads(source, basename)
+      uri = source.base_uri + "/file_metadata/#{source.subject}/#{source.repo}/#{basename}"
       list_response = http.put(
-        source.base_uri +
-        "/file_metadata/#{source.subject}/#{source.repo}/#{basename}",
+        uri,
         JSON.generate("list_in_downloads" => true),
-          "Content-Type" => "application/json"
+        "Content-Type" => "application/json"
       )
-      raise FailureResponse, list_response.body if list_response.code >= 400
+      raise FailureResponse, "PUT to #{uri} failed:\n#{list_response.body}" if list_response.code >= 400
       list_response
     end
 
