@@ -15,14 +15,15 @@ module BintrayResource
     end
 
     def test_put_success_returns_parsed_body
-      response = @http.put("http://httpbin.org/put", "foobar", {})
+      response = @http.put("http://httpbin.org/put", "foobar", {'Content-Type' => 'application/foofy'})
       assert_equal "httpbin.org", JSON.parse(response.body)["headers"]["Host"]
+      assert_equal "application/foofy", JSON.parse(response.body)["headers"]["Content-Type"]
     end
   end
 
   class TestFakeHttp < TestHttp
     def setup
-      @http = FakeHttp.new([200], '{"headers": {"Host": "httpbin.org"}}')
+      @http = FakeHttp.new([200], '{"headers": {"Content-Type": "application/foofy", "Host": "httpbin.org"}}')
     end
   end
 end
