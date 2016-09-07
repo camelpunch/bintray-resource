@@ -46,21 +46,15 @@ module BintrayResource
       resource.call("/sources/path", @input)
 
       assert_equal(
-        %w(
-        https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
-        ),
+        %w(https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1),
         http.put_uris
       )
       assert_equal(
-        [
-          "my-sweet-file-contents",
-        ],
+        ["my-sweet-file-contents"],
         http.put_contents
       )
       assert_equal(
-        [
-          {"Content-Type" => "application/octet-stream"},
-        ],
+        [{"Content-Type" => "application/octet-stream"}],
         http.put_headers
       )
     end
@@ -90,17 +84,13 @@ module BintrayResource
         http.put_uris
       )
       assert_equal(
-        [
-          "my-sweet-file-contents",
-          JSON.generate("list_in_downloads" => true),
-        ],
+        ["my-sweet-file-contents",
+         JSON.generate("list_in_downloads" => true)],
         http.put_contents
       )
       assert_equal(
-        [
-          {"Content-Type" => "application/octet-stream"},
-          {"Content-Type" => "application/json"}
-        ],
+        [{"Content-Type" => "application/octet-stream"},
+         {"Content-Type" => "application/json"}],
         http.put_headers
       )
     end
