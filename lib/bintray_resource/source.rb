@@ -1,20 +1,14 @@
 module BintrayResource
-  class ReaderStub
-    def initialize(stub: {}, to_return: {})
-      @stubs = stub
-      @read_return = to_return
+  class Source
+    attr_reader :api_key, :api_version, :package, :repo, :subject, :username
+
+    def initialize(opts)
+      @api_key, @api_version, @package, @repo, @subject, @username =
+        opts.values_at(*%w(api_key api_version package repo subject username))
     end
 
-    def read(actual_glob, actual_regexp)
-      if @stubs.empty? || actual_glob == @stubs[:glob] && actual_regexp == @stubs[:regexp]
-        @read_return
-      else
-        {
-          "basename" => "notstubbed",
-          "contents" => "notstubbed",
-          "version" => "notstubbed",
-        }
-      end
+    def base_uri
+      "https://#{username}:#{api_key}@bintray.com/api/#{api_version}"
     end
   end
 end
