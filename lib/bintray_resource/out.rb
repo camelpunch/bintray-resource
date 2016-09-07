@@ -24,7 +24,7 @@ module BintrayResource
       ).values_at(*%w(contents basename version))
 
       upload_response = upload(source, params, contents, basename, version)
-      list_in_downloads(source, params, basename)
+      list_in_downloads(source, basename) if params.list_in_downloads
 
       { "version"  => { "ref" => version },
         "metadata" => [{ "name" => "response",
@@ -45,16 +45,15 @@ module BintrayResource
       upload_response
     end
 
-    def list_in_downloads(source, params, basename)
-      if params.list_in_downloads
-        list_response = http.put(
-          source.base_uri +
-          "/file_metadata/#{source.subject}/#{source.repo}/#{basename}",
-          JSON.generate("list_in_downloads" => true),
+    def list_in_downloads(source, basename)
+      list_response = http.put(
+        source.base_uri +
+        "/file_metadata/#{source.subject}/#{source.repo}/#{basename}",
+        JSON.generate("list_in_downloads" => true),
           "Content-Type" => "application/json"
-        )
-        raise FailureResponse, list_response.body if list_response.code >= 400
-      end
+      )
+      raise FailureResponse, list_response.body if list_response.code >= 400
+      list_response
     end
 
     def uri_bool(bool)
