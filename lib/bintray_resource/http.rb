@@ -4,7 +4,7 @@ require_relative 'http_response'
 
 module BintrayResource
   class Http
-    def put(uri, contents)
+    def put(uri, contents, headers)
       u = URI.parse(uri)
       conn = Faraday.new("#{u.scheme}://#{u.host}")
       conn.basic_auth(u.user, u.password)

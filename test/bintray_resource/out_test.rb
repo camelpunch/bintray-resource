@@ -1,6 +1,7 @@
 require 'minitest/autorun'
+require 'minitest/focus'
 require_relative '../../lib/bintray_resource/out'
-require_relative '../../lib/bintray_resource/http_response'
+require_relative '../doubles/fake_http'
 
 module BintrayResource
   class TestOut < Minitest::Test
@@ -20,16 +21,21 @@ module BintrayResource
           "version_regexp"  => "my-source/(.*)/built-.*",
         },
       }
+      @input_with_list = @input.merge(
+        "params" => @input["params"].merge(
+          "list_in_downloads" => true
+        )
+      )
     end
 
-    def test_uploads_contents_of_file
+    def test_upload
       reader = ReaderStub.new(
         stub: {
           glob: "/sources/path/my-source/built-*.ez",
           regexp:  "my-source/(.*)/built-.*",
         },
         to_return: {
-          "basename"  => "built-package.ez",
+          "basename"  => "built-package12345.ez",
           "contents"  => "my-sweet-file-contents",
           "version"   => "3.6.5",
         }
@@ -40,12 +46,62 @@ module BintrayResource
       resource.call("/sources/path", @input)
 
       assert_equal(
-        "https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package.ez?publish=1",
-        http.received_uri
+        %w(
+        https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
+        ),
+        http.put_uris
       )
       assert_equal(
-        "my-sweet-file-contents",
-        http.received_content
+        [
+          "my-sweet-file-contents",
+        ],
+        http.put_contents
+      )
+      assert_equal(
+        [
+          {"Content-Type" => "application/octet-stream"},
+        ],
+        http.put_headers
+      )
+    end
+
+    def test_uploads_and_makes_available_in_downloads_list
+      reader = ReaderStub.new(
+        stub: {
+          glob: "/sources/path/my-source/built-*.ez",
+          regexp:  "my-source/(.*)/built-.*",
+        },
+        to_return: {
+          "basename"  => "built-package12345.ez",
+          "contents"  => "my-sweet-file-contents",
+          "version"   => "3.6.5",
+        }
+      )
+      http = FakeHttp.new([200, 200], "")
+      resource = Out.new(reader: reader, http: http)
+
+      resource.call("/sources/path", @input_with_list)
+
+      assert_equal(
+        %w(
+        https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
+        https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez
+        ),
+        http.put_uris
+      )
+      assert_equal(
+        [
+          "my-sweet-file-contents",
+          JSON.generate("list_in_downloads" => true),
+        ],
+        http.put_contents
+      )
+      assert_equal(
+        [
+          {"Content-Type" => "application/octet-stream"},
+          {"Content-Type" => "application/json"}
+        ],
+        http.put_headers
       )
     end
 
@@ -58,18 +114,8 @@ module BintrayResource
 
     def test_result_of_put_is_placed_in_metadata
       resource = Out.new(
-        reader: ReaderStub.new(
-          stub: {
-            glob: "/sources/path/my-source/built-package.ez",
-            regexp: "my-source/(.*)/built-.*",
-          },
-          to_return: {
-            "basename" => "",
-            "contents" => "",
-            "version" => "",
-          }
-        ),
-        http: FakeHttp.new(200, '{"result":"success"}')
+        reader: ReaderStub.new,
+        http: FakeHttp.new([200], '{"result":"success"}')
       )
       retval = resource.call("/sources/path", @input)
 
@@ -82,47 +128,23 @@ module BintrayResource
       )
     end
 
-    def test_failure_raises_exception
+    def test_failure_in_upload_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new(400, '{"result":"failure"}')
+        http: FakeHttp.new([400], '{"result":"failure"}')
       )
       assert_raises(BintrayResource::FailureResponse) do
         resource.call("/sources/path", @input)
       end
     end
 
-    class FakeHttp
-      attr_reader :received_uri, :received_content
-
-      def initialize(response_code = 200, response_body = "")
-        @response_code = response_code
-        @response_body = response_body
-      end
-
-      def put(uri, content)
-        @received_uri = uri
-        @received_content = content
-        HttpResponse.new(@response_code, @response_body)
-      end
-    end
-
-    class ReaderStub
-      def initialize(stub: {}, to_return: {})
-        @stubs = stub
-        @read_return = to_return
-      end
-
-      def read(actual_glob, actual_regexp)
-        if @stubs.empty? || actual_glob == @stubs[:glob] && actual_regexp == @stubs[:regexp]
-          @read_return
-        else
-          {
-            "basename" => "notstubbed",
-            "contents" => "notstubbed",
-            "version" => "notstubbed",
-          }
-        end
+    def test_failure_in_downloads_list_raises_exception
+      resource = Out.new(
+        reader: ReaderStub.new,
+        http: FakeHttp.new([200, 400], '{"result":"failure"}')
+      )
+      assert_raises(BintrayResource::FailureResponse) do
+        resource.call("/sources/path", @input_with_list)
       end
     end
   end
