@@ -36,10 +36,9 @@ module BintrayResource
     private
 
     def upload(source, params, contents, basename, version)
+      uri = upload_uri(source, version, basename, params)
       upload_response = http.put(
-        source.base_uri +
-        "/content/#{source.subject}/#{source.repo}/#{source.package}/#{version}" +
-        "/#{basename}?publish=#{uri_bool(params.publish)}",
+        uri,
         contents,
         {"Content-Type" => "application/octet-stream"}
       )
@@ -47,7 +46,7 @@ module BintrayResource
       when SUCCESS, ALREADY_EXISTS
         upload_response
       else
-        raise FailureResponse, upload_response.body
+        raise_failure("PUT", uri, upload_response)
       end
     end
 
@@ -58,12 +57,22 @@ module BintrayResource
         JSON.generate("list_in_downloads" => true),
         "Content-Type" => "application/json"
       )
-      raise FailureResponse, "PUT to #{uri} failed:\n#{list_response.body}" if list_response.code >= 400
+      raise_failure("PUT", uri, list_response) unless SUCCESS === list_response.code
       list_response
     end
 
     def uri_bool(bool)
       bool ? "1" : "0"
+    end
+
+    def upload_uri(source, version, filename, params)
+      source.base_uri +
+        "/content/#{source.subject}/#{source.repo}/#{source.package}/#{version}" +
+        "/#{filename}?publish=#{uri_bool(params.publish)}"
+    end
+
+    def raise_failure(method, uri, response)
+      raise FailureResponse, "#{method} to #{uri} failed with #{response.code}:\n#{response.body}"
     end
   end
 end
