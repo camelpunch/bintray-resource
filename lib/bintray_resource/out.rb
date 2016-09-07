@@ -5,6 +5,8 @@ require_relative 'source'
 
 module BintrayResource
   FailureResponse = Class.new(StandardError)
+  SUCCESS = (0..399)
+  ALREADY_EXISTS = 409
 
   class Out
     def initialize(reader:, http:)
@@ -41,8 +43,12 @@ module BintrayResource
         contents,
         {"Content-Type" => "application/octet-stream"}
       )
-      raise FailureResponse, upload_response.body if upload_response.code >= 400
-      upload_response
+      case upload_response.code
+      when SUCCESS, ALREADY_EXISTS
+        upload_response
+      else
+        raise FailureResponse, upload_response.body
+      end
     end
 
     def list_in_downloads(source, basename)

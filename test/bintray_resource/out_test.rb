@@ -118,6 +118,33 @@ module BintrayResource
       )
     end
 
+    def test_ignores_already_exists_failure
+      reader = ReaderStub.new(
+        stub: {
+          glob: "/sources/path/my-source/built-*.ez",
+          regexp:  "my-source/(.*)/built-.*",
+        },
+        to_return: {
+          "basename"  => "built-package12345.ez",
+          "contents"  => "my-sweet-file-contents",
+          "version"   => "3.6.5",
+        }
+      )
+      http = FakeHttp.new([409, 200], "")
+      resource = Out.new(reader: reader, http: http)
+
+      resource.call("/sources/path", @input_with_list)
+
+      assert_equal(
+        "https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez",
+        http.put_uris[1]
+      )
+      assert_equal(
+        JSON.generate("list_in_downloads" => true),
+        http.put_contents[1]
+      )
+    end
+
     def test_failure_in_upload_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
