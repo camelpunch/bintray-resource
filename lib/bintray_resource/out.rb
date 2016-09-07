@@ -7,15 +7,17 @@ module BintrayResource
   FailureResponse = Class.new(StandardError)
   SUCCESS = (0..399)
   ALREADY_EXISTS = 409
+  FAILURE = (400..499)
 
   class Out
-    def initialize(reader:, http:)
+    def initialize(reader:, http:, downloads_list_retries: 10)
       @reader = reader
       @http = http
+      @downloads_list_retries = downloads_list_retries
     end
 
-    attr_reader :reader, :http
-    private :reader, :http
+    attr_reader :reader, :http, :downloads_list_retries
+    private :reader, :http, :downloads_list_retries
 
     def call(sources_dir, opts)
       source = Source.new(opts["source"])
@@ -37,28 +39,35 @@ module BintrayResource
 
     def upload(source, params, contents, basename, version)
       uri = upload_uri(source, version, basename, params)
-      upload_response = http.put(
+      response = http.put(
         uri,
         contents,
         {"Content-Type" => "application/octet-stream"}
       )
-      case upload_response.code
+      case response.code
       when SUCCESS, ALREADY_EXISTS
-        upload_response
+        response
       else
-        raise_failure("PUT", uri, upload_response)
+        raise_failure("PUT", uri, response)
       end
     end
 
-    def list_in_downloads(source, basename)
+    def list_in_downloads(source, basename, try: 1)
       uri = source.base_uri + "/file_metadata/#{source.subject}/#{source.repo}/#{basename}"
-      list_response = http.put(
+      response = http.put(
         uri,
         JSON.generate("list_in_downloads" => true),
         "Content-Type" => "application/json"
       )
-      raise_failure("PUT", uri, list_response) unless SUCCESS === list_response.code
-      list_response
+      case response.code
+      when SUCCESS
+        response
+      when FAILURE
+        raise_failure("PUT", uri, response) if try == downloads_list_retries
+        list_in_downloads(source, basename, try: try + 1)
+      else
+        raise_failure("PUT", uri, response)
+      end
     end
 
     def uri_bool(bool)
