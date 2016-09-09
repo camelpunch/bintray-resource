@@ -9,6 +9,17 @@ module BintrayResource
       @http = Http.new
     end
 
+    def test_post_success_returns_code
+      response = @http.post("http://httpbin.org/post", "foobar", {})
+      assert_equal 200, response.code
+    end
+
+    def test_post_success_returns_parsed_body
+      response = @http.post("http://httpbin.org/post", "foobar", {'Content-Type' => 'application/foofy'})
+      assert_equal "httpbin.org", JSON.parse(response.body)["headers"]["Host"]
+      assert_equal "application/foofy", JSON.parse(response.body)["headers"]["Content-Type"]
+    end
+
     def test_put_success_returns_code
       response = @http.put("http://httpbin.org/put", "foobar", {})
       assert_equal 200, response.code

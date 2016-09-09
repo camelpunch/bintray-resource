@@ -16,7 +16,7 @@ module BintrayResource
       self
     end
 
-    def call(uri, content, headers = {})
+    def call(method, uri, content, headers = {})
       raise Upload::FailureResponse if @failures.shift
       http.put(uri, content, headers)
     end
@@ -31,6 +31,10 @@ module BintrayResource
 
     def uris
       http.uris
+    end
+
+    def http_methods
+      http.http_methods
     end
   end
 end

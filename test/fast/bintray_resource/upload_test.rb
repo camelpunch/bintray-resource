@@ -13,7 +13,7 @@ module BintrayResource
     end
 
     def test_contract
-      response = @upload.call("http://httpbin.org/put", "foobar", {'some' => 'headers'})
+      response = @upload.call(:put, "http://httpbin.org/put", "foobar", {'some' => 'headers'})
       assert_equal "httpbin.org", JSON.parse(response.body)["headers"]["Host"]
     end
   end
@@ -25,8 +25,12 @@ module BintrayResource
     end
 
     def test_upload
-      @upload.call("http://some/place", "my-sweet-file-contents", 'Content-Type' => 'application/octet-stream')
+      @upload.call(:put, "http://some/place", "my-sweet-file-contents", 'Content-Type' => 'application/octet-stream')
 
+      assert_equal(
+        [:put],
+        @http.http_methods
+      )
       assert_equal(
         %w(http://some/place),
         @http.uris
@@ -50,7 +54,7 @@ module BintrayResource
       normal_response = {"version" => {"ref" => nil},
                          "metadata" => [{"name" => "response",
                                          "value" => ""}]}
-      assert_equal(200, upload.call("http://sources/path", "content", {}).code)
+      assert_equal(200, upload.call(:post, "http://sources/path", "content", {}).code)
       assert_equal([1, 2, 4], sleeper.sleeps)
     end
 
@@ -61,13 +65,13 @@ module BintrayResource
         retries: 3
       )
       assert_raises(BintrayResource::Upload::FailureResponse) do
-        upload.call("http://sources/path", "", {})
+        upload.call(:put, "http://sources/path", "", {})
       end
     end
 
     def test_returns_conflict_failures_without_raising
       upload = Upload.new(http: FakeHttp.new([409], ""))
-      response = upload.call("http://sources/path", "", {})
+      response = upload.call(:put, "http://sources/path", "", {})
       assert_equal(409, response.code)
     end
   end

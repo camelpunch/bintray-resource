@@ -52,6 +52,10 @@ module BintrayResource
         upload.uris
       )
       assert_equal(
+        %i(put),
+        upload.http_methods
+      )
+      assert_equal(
         ["my-sweet-file-contents"],
         upload.contents
       )

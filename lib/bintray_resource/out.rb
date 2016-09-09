@@ -22,6 +22,7 @@ module BintrayResource
       ).values_at(*%w(contents basename version))
 
       upload_response = upload.call(
+        :put,
         upload_uri(source, version, basename, params),
         contents,
         'Content-Type' => 'application/octet-stream'
@@ -29,6 +30,7 @@ module BintrayResource
 
       if params.list_in_downloads
         upload.call(
+          :put,
           source.base_uri + "/file_metadata/#{source.subject}/#{source.repo}/#{basename}",
           JSON.generate("list_in_downloads" => true),
           "Content-Type" => "application/json"

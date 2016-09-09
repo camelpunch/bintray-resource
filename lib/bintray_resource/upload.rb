@@ -16,21 +16,19 @@ module BintrayResource
       @retries = retries
     end
 
-    def call(uri, contents,
+    def call(method, uri, contents,
              headers,
              try: 1,
              sleep_time: 1)
-      response = http.put(uri, contents, headers)
+      response = http.public_send(method, uri, contents, headers)
       case response.code
       when SUCCESS, ALREADY_EXISTS
         response
       else
-        raise_failure("PUT", uri, response) if try == retries
+        raise_failure(method, uri, response) if try == retries
         sleeper.sleep(sleep_time)
-        call(
-          uri, contents, headers,
-          try: try + 1, sleep_time: sleep_time * 2
-        )
+        call(method, uri, contents, headers,
+             try: try + 1, sleep_time: sleep_time * 2)
       end
     end
 
