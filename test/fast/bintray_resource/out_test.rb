@@ -21,6 +21,8 @@ module BintrayResource
           "file"            => "my-source/built-*.ez",
           "publish"         => true,
           "version_regexp"  => "my-source/(.*)/built-.*",
+          "licenses"        => ["Mozilla-1.1"],
+          "vcs_url"         => "https://github.com/rabbitmq/rabbitmq-clusterer",
         },
       }
       @input_with_list = @input.merge(
@@ -30,7 +32,7 @@ module BintrayResource
       )
     end
 
-    def test_upload
+    def test_create_and_upload
       reader = ReaderStub.new(
         stub: {
           glob: "/sources/path/my-source/built-*.ez",
@@ -42,25 +44,39 @@ module BintrayResource
           "version"   => "3.6.5",
         }
       )
-      upload = UploadSpy.new
+      upload = UploadSpy.new([201, 200], "")
       resource = Out.new(reader: reader, upload: upload)
 
       resource.call("/sources/path", @input)
 
       assert_equal(
-        %w(https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1),
+        %w(
+          https://myuser:abcde123456@bintray.com/api/v1/packages/rabbitmq/community-plugins
+          https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
+        ),
         upload.uris
       )
       assert_equal(
-        %i(put),
+        %i(
+          post
+          put
+        ),
         upload.http_methods
       )
       assert_equal(
-        ["my-sweet-file-contents"],
+        [
+          JSON.generate("name" => "rabbitmq_clusterer",
+                        "licenses" => ["Mozilla-1.1"],
+                        "vcs_url" => "https://github.com/rabbitmq/rabbitmq-clusterer"),
+          "my-sweet-file-contents"
+        ],
         upload.contents
       )
       assert_equal(
-        [{"Content-Type" => "application/octet-stream"}],
+        [
+          {"Content-Type" => "application/json"},
+          {"Content-Type" => "application/octet-stream"},
+        ],
         upload.headers
       )
     end
@@ -77,33 +93,28 @@ module BintrayResource
           "version"   => "3.6.5",
         }
       )
-      upload = UploadSpy.new([200, 200], "")
+      upload = UploadSpy.new([201, 200, 200], "")
       resource = Out.new(reader: reader, upload: upload)
 
       resource.call("/sources/path", @input_with_list)
 
       assert_equal(
-        %w(
-        https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
-        https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez
-        ),
-        upload.uris
+        "https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez",
+        upload.uris.last
       )
       assert_equal(
-        ["my-sweet-file-contents",
-         JSON.generate("list_in_downloads" => true)],
-        upload.contents
+        JSON.generate("list_in_downloads" => true),
+        upload.contents.last
       )
       assert_equal(
-        [{"Content-Type" => "application/octet-stream"},
-         {"Content-Type" => "application/json"}],
-        upload.headers
+        {"Content-Type" => "application/json"},
+        upload.headers.last
       )
     end
 
     def test_emits_version_passed_to_it
       reader = ReaderStub.new(to_return: { "version" => "1.2.3" })
-      retval = Out.new(reader: reader, upload: UploadSpy.new).
+      retval = Out.new(reader: reader, upload: UploadSpy.new([201, 200])).
         call("/full/sources", @input)
       assert_equal({ "ref" => "1.2.3" }, retval["version"])
     end
@@ -111,7 +122,7 @@ module BintrayResource
     def test_result_of_put_is_placed_in_metadata
       resource = Out.new(
         reader: ReaderStub.new,
-        upload: UploadSpy.new([200], '{"result":"success"}')
+        upload: UploadSpy.new([200, 200], '{"result":"success"}')
       )
       retval = resource.call("/sources/path", @input)
 
@@ -137,7 +148,7 @@ module BintrayResource
     def test_failure_in_downloads_list_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
-        upload: UploadSpy.new.ordered_failures(false, true)
+        upload: UploadSpy.new([200, 200, 500]).ordered_failures(false, false, true)
       )
       assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input_with_list)

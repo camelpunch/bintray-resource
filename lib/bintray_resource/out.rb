@@ -21,6 +21,15 @@ module BintrayResource
         params.version_regexp
       ).values_at(*%w(contents basename version))
 
+      upload.call(
+        :post,
+        create_uri(source),
+        JSON.generate("name" => source.package,
+                      "licenses" => params.licenses,
+                      "vcs_url" => params.vcs_url),
+        'Content-Type' => 'application/json'
+      )
+
       upload_response = upload.call(
         :put,
         upload_uri(source, version, basename, params),
@@ -31,7 +40,7 @@ module BintrayResource
       if params.list_in_downloads
         upload.call(
           :put,
-          source.base_uri + "/file_metadata/#{source.subject}/#{source.repo}/#{basename}",
+          list_in_downloads_uri(source, basename),
           JSON.generate("list_in_downloads" => true),
           "Content-Type" => "application/json"
         )
@@ -44,10 +53,29 @@ module BintrayResource
 
     private
 
+    def create_uri(source)
+      [ source.base_uri,
+        "packages",
+        source.subject,
+        source.repo ].join("/")
+    end
+
     def upload_uri(source, version, filename, params)
-      source.base_uri +
-        "/content/#{source.subject}/#{source.repo}/#{source.package}/#{version}" +
-        "/#{filename}?publish=#{uri_bool(params.publish)}"
+      [ source.base_uri,
+        "content",
+        source.subject,
+        source.repo,
+        source.package,
+        version,
+        "#{filename}?publish=#{uri_bool(params.publish)}" ].join("/")
+    end
+
+    def list_in_downloads_uri(source, basename)
+      [ source.base_uri,
+        "file_metadata",
+        source.subject,
+        source.repo,
+        basename ].join("/")
     end
 
     def uri_bool(bool)

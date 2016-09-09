@@ -6,7 +6,7 @@ module BintrayResource
   class UploadSpy
     attr_reader :http
 
-    def initialize(response_codes = [200], response_body = "")
+    def initialize(response_codes = [], response_body = "")
       @http = FakeHttp.new(response_codes, response_body)
       @failures = []
     end
@@ -18,7 +18,7 @@ module BintrayResource
 
     def call(method, uri, content, headers = {})
       raise Upload::FailureResponse if @failures.shift
-      http.put(uri, content, headers)
+      http.public_send(method, uri, content, headers)
     end
 
     def headers
