@@ -21,16 +21,16 @@ module BintrayResource
       http.put(uri, content, headers)
     end
 
-    def put_headers
-      http.put_headers
+    def headers
+      http.headers
     end
 
-    def put_contents
-      http.put_contents
+    def contents
+      http.contents
     end
 
-    def put_uris
-      http.put_uris
+    def uris
+      http.uris
     end
   end
 end

@@ -1,9 +1,9 @@
 require 'minitest/autorun'
 require 'minitest/focus'
-require_relative '../../lib/bintray_resource/out'
-require_relative '../../lib/bintray_resource/upload'
-require_relative '../doubles/fake_http'
-require_relative '../doubles/upload_spy'
+require_relative '../../../lib/bintray_resource/out'
+require_relative '../../../lib/bintray_resource/upload'
+require_relative '../../doubles/fake_http'
+require_relative '../../doubles/upload_spy'
 
 module BintrayResource
   class TestOut < Minitest::Test
@@ -49,15 +49,15 @@ module BintrayResource
 
       assert_equal(
         %w(https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1),
-        upload.put_uris
+        upload.uris
       )
       assert_equal(
         ["my-sweet-file-contents"],
-        upload.put_contents
+        upload.contents
       )
       assert_equal(
         [{"Content-Type" => "application/octet-stream"}],
-        upload.put_headers
+        upload.headers
       )
     end
 
@@ -83,17 +83,17 @@ module BintrayResource
         https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
         https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez
         ),
-        upload.put_uris
+        upload.uris
       )
       assert_equal(
         ["my-sweet-file-contents",
          JSON.generate("list_in_downloads" => true)],
-        upload.put_contents
+        upload.contents
       )
       assert_equal(
         [{"Content-Type" => "application/octet-stream"},
          {"Content-Type" => "application/json"}],
-        upload.put_headers
+        upload.headers
       )
     end
 

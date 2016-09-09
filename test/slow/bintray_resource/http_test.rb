@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 require 'json'
-require_relative '../../lib/bintray_resource/http'
-require_relative '../../test/doubles/fake_http'
+require_relative '../../../lib/bintray_resource/http'
+require_relative '../../../test/doubles/fake_http'
 
 module BintrayResource
   class TestHttp < Minitest::Test

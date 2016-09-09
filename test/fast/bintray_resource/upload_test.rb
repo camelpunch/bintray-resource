@@ -1,9 +1,9 @@
 require 'json'
 require 'minitest/autorun'
 require 'minitest/focus'
-require_relative '../../lib/bintray_resource/upload'
-require_relative '../doubles/fake_http'
-require_relative '../doubles/upload_spy'
+require_relative '../../../lib/bintray_resource/upload'
+require_relative '../../doubles/fake_http'
+require_relative '../../doubles/upload_spy'
 
 module BintrayResource
   class TestUpload < Minitest::Test
@@ -29,15 +29,15 @@ module BintrayResource
 
       assert_equal(
         %w(http://some/place),
-        @http.put_uris
+        @http.uris
       )
       assert_equal(
         ["my-sweet-file-contents"],
-        @http.put_contents
+        @http.contents
       )
       assert_equal(
         [{"Content-Type" => "application/octet-stream"}],
-        @http.put_headers
+        @http.headers
       )
     end
 

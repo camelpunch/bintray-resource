@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 require 'pathname'
 require 'tmpdir'
-require_relative '../../lib/bintray_resource/reader'
+require_relative '../../../lib/bintray_resource/reader'
 
 module BintrayResource
   class TestReader < Minitest::Test
