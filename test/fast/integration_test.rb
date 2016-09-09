@@ -4,7 +4,7 @@ require 'json'
 
 class TestIntegration < Minitest::Test
   def test_parsing
-    exec_path = Pathname(__dir__).join("../out")
+    exec_path = Pathname(__dir__).join("../../out")
     input = '{"source": {}, "params": {"file": "foo"}}'
     output = `echo '#{input}' | #{exec_path} bar 2>&1`
 
@@ -12,7 +12,7 @@ class TestIntegration < Minitest::Test
   end
 
   def test_in_echos_version
-    exec_path = Pathname(__dir__).join("../in")
+    exec_path = Pathname(__dir__).join("../../in")
     input = JSON.generate(
       "source" => { "" => "" },
       "version" => {
@@ -28,7 +28,7 @@ class TestIntegration < Minitest::Test
   end
 
   def test_in_returns_zero
-    exec_path = Pathname(__dir__).join("../in")
+    exec_path = Pathname(__dir__).join("../../in")
     input = JSON.generate(
       "source" => { "" => "" },
       "version" => {
