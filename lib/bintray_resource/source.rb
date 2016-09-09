@@ -1,6 +1,6 @@
 module BintrayResource
   class Source
-    attr_reader :api_key, :api_version, :package, :repo, :subject, :username
+    attr_reader :api_key, :package, :repo, :subject, :username
 
     API_VERSION = "v1"
 
