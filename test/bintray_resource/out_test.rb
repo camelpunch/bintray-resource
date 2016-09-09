@@ -1,6 +1,7 @@
 require 'minitest/autorun'
 require 'minitest/focus'
 require_relative '../../lib/bintray_resource/out'
+require_relative '../../lib/bintray_resource/upload'
 require_relative '../doubles/fake_http'
 
 module BintrayResource
@@ -41,7 +42,7 @@ module BintrayResource
         }
       )
       http = FakeHttp.new
-      resource = Out.new(reader: reader, http: http)
+      resource = Out.new(reader: reader, upload: Upload.new(http: http))
 
       resource.call("/sources/path", @input)
 
@@ -72,7 +73,7 @@ module BintrayResource
         }
       )
       http = FakeHttp.new([200, 200], "")
-      resource = Out.new(reader: reader, http: http)
+      resource = Out.new(reader: reader, upload: Upload.new(http: http))
 
       resource.call("/sources/path", @input_with_list)
 
@@ -97,7 +98,7 @@ module BintrayResource
 
     def test_emits_version_passed_to_it
       reader = ReaderStub.new(to_return: { "version" => "1.2.3" })
-      retval = Out.new(reader: reader, http: FakeHttp.new).
+      retval = Out.new(reader: reader, upload: Upload.new(http: FakeHttp.new)).
         call("/full/sources", @input)
       assert_equal({ "ref" => "1.2.3" }, retval["version"])
     end
@@ -105,7 +106,9 @@ module BintrayResource
     def test_result_of_put_is_placed_in_metadata
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([200], '{"result":"success"}')
+        upload: Upload.new(
+          http: FakeHttp.new([200], '{"result":"success"}')
+        )
       )
       retval = resource.call("/sources/path", @input)
 
@@ -131,7 +134,7 @@ module BintrayResource
         }
       )
       http = FakeHttp.new([409, 200], "")
-      resource = Out.new(reader: reader, http: http)
+      resource = Out.new(reader: reader, upload: Upload.new(http: http))
 
       resource.call("/sources/path", @input_with_list)
 
@@ -148,8 +151,10 @@ module BintrayResource
     def test_failure_in_upload_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([400], '{"result":"failure"}'),
-        retries: 1
+        upload: Upload.new(
+          http: FakeHttp.new([400], '{"result":"failure"}'),
+          retries: 1
+        )
       )
       assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input)
@@ -159,8 +164,10 @@ module BintrayResource
     def test_500_failure_in_downloads_list_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([200, 500], '{"result":"failure"}'),
-        retries: 1
+        upload: Upload.new(
+          http: FakeHttp.new([200, 500], '{"result":"failure"}'),
+          retries: 1
+        )
       )
       assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input_with_list)
@@ -183,8 +190,10 @@ module BintrayResource
       sleeper = SleeperSpy.new
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([200, 400, 400, 400, 200], ''),
-        sleeper: sleeper
+        upload: Upload.new(
+          http: FakeHttp.new([200, 400, 400, 400, 200], ''),
+          sleeper: sleeper
+        )
       )
       normal_response = {"version" => {"ref" => nil},
                          "metadata" => [{"name" => "response",
@@ -199,9 +208,11 @@ module BintrayResource
     def test_400_failure_has_retry_limit
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([200, 400, 400, 400], ''),
-        sleeper: SleeperSpy.new,
-        retries: 3
+        upload: Upload.new(
+          http: FakeHttp.new([200, 400, 400, 400], ''),
+          sleeper: SleeperSpy.new,
+          retries: 3
+        )
       )
       assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input_with_list)

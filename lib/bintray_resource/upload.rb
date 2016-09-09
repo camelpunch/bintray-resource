@@ -1,3 +1,5 @@
+require_relative 'sleeper'
+
 module BintrayResource
   class Upload
     FailureResponse = Class.new(StandardError)
@@ -8,7 +10,7 @@ module BintrayResource
     attr_reader :http, :sleeper, :retries
     private :http, :sleeper, :retries
 
-    def initialize(http, sleeper, retries)
+    def initialize(http:, sleeper: Sleeper.new, retries: 10)
       @http = http
       @sleeper = sleeper
       @retries = retries

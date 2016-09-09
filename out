@@ -6,6 +6,8 @@ require 'json'
 opts = JSON.parse($stdin.gets)
 out = BintrayResource::Out.new(
   reader: BintrayResource::Reader.new, 
-  http: BintrayResource::Http.new
+  upload: BintrayResource::Upload.new(
+    http: BintrayResource::Http.new
+  )
 )
 puts JSON.generate(out.call(ARGV.first, opts))

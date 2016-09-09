@@ -1,20 +1,16 @@
 require 'json'
 require 'ostruct'
 require 'pathname'
-require_relative 'sleeper'
 require_relative 'source'
-require_relative 'upload'
 
 module BintrayResource
   class Out
-    attr_reader :reader, :http, :sleeper, :retries
-    private :reader, :http, :sleeper, :retries
+    attr_reader :reader, :upload
+    private :reader, :upload
 
-    def initialize(reader:, http:, sleeper: Sleeper.new, retries: 10)
+    def initialize(reader:, upload:)
       @reader = reader
-      @http = http
-      @retries = retries
-      @sleeper = sleeper
+      @upload = upload
     end
 
     def call(sources_dir, opts)
@@ -25,7 +21,6 @@ module BintrayResource
         params.version_regexp
       ).values_at(*%w(contents basename version))
 
-      upload = Upload.new(http, sleeper, retries)
       upload_response = upload.call(
         upload_uri(source, version, basename, params),
         contents
