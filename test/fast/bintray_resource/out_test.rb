@@ -11,7 +11,6 @@ module BintrayResource
       @input = {
         "source" => {
           "api_key"         => "abcde123456",
-          "api_version"     => "v1",
           "package"         => "rabbitmq_clusterer",
           "repo"            => "community-plugins",
           "subject"         => "rabbitmq",
