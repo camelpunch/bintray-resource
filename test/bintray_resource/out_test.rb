@@ -148,7 +148,8 @@ module BintrayResource
     def test_failure_in_upload_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([400], '{"result":"failure"}')
+        http: FakeHttp.new([400], '{"result":"failure"}'),
+        retries: 1
       )
       assert_raises(BintrayResource::FailureResponse) do
         resource.call("/sources/path", @input)
@@ -158,7 +159,8 @@ module BintrayResource
     def test_500_failure_in_downloads_list_raises_exception
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([200, 500], '{"result":"failure"}')
+        http: FakeHttp.new([200, 500], '{"result":"failure"}'),
+        retries: 1
       )
       assert_raises(BintrayResource::FailureResponse) do
         resource.call("/sources/path", @input_with_list)
@@ -199,7 +201,7 @@ module BintrayResource
         reader: ReaderStub.new,
         http: FakeHttp.new([200, 400, 400, 400], ''),
         sleeper: SleeperSpy.new,
-        downloads_list_retries: 3
+        retries: 3
       )
       assert_raises(BintrayResource::FailureResponse) do
         resource.call("/sources/path", @input_with_list)
