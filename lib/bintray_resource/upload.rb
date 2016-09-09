@@ -17,7 +17,7 @@ module BintrayResource
     end
 
     def call(uri, contents,
-             headers = {"Content-Type" => "application/octet-stream"},
+             headers,
              try: 1,
              sleep_time: 1)
       response = http.put(uri, contents, headers)

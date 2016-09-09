@@ -23,7 +23,8 @@ module BintrayResource
 
       upload_response = upload.call(
         upload_uri(source, version, basename, params),
-        contents
+        contents,
+        'Content-Type' => 'application/octet-stream'
       )
 
       if params.list_in_downloads
