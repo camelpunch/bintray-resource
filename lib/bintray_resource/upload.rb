@@ -1,5 +1,10 @@
 module BintrayResource
   class Upload
+    FailureResponse = Class.new(StandardError)
+    SUCCESS = (0..399)
+    ALREADY_EXISTS = 409
+    FAILURE = (400..499)
+
     attr_reader :http, :sleeper, :retries
     private :http, :sleeper, :retries
 

@@ -151,7 +151,7 @@ module BintrayResource
         http: FakeHttp.new([400], '{"result":"failure"}'),
         retries: 1
       )
-      assert_raises(BintrayResource::FailureResponse) do
+      assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input)
       end
     end
@@ -162,7 +162,7 @@ module BintrayResource
         http: FakeHttp.new([200, 500], '{"result":"failure"}'),
         retries: 1
       )
-      assert_raises(BintrayResource::FailureResponse) do
+      assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input_with_list)
       end
     end
@@ -203,7 +203,7 @@ module BintrayResource
         sleeper: SleeperSpy.new,
         retries: 3
       )
-      assert_raises(BintrayResource::FailureResponse) do
+      assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input_with_list)
       end
     end

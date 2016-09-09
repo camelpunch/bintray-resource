@@ -6,11 +6,6 @@ require_relative 'source'
 require_relative 'upload'
 
 module BintrayResource
-  FailureResponse = Class.new(StandardError)
-  SUCCESS = (0..399)
-  ALREADY_EXISTS = 409
-  FAILURE = (400..499)
-
   class Out
     attr_reader :reader, :http, :sleeper, :retries
     private :reader, :http, :sleeper, :retries
