@@ -1,6 +1,7 @@
 require 'json'
-require 'pathname'
 require 'ostruct'
+require 'pathname'
+require_relative 'sleeper'
 require_relative 'source'
 
 module BintrayResource
@@ -10,14 +11,15 @@ module BintrayResource
   FAILURE = (400..499)
 
   class Out
-    def initialize(reader:, http:, downloads_list_retries: 10)
+    def initialize(reader:, http:, sleeper: Sleeper.new, downloads_list_retries: 10)
       @reader = reader
       @http = http
       @downloads_list_retries = downloads_list_retries
+      @sleeper = sleeper
     end
 
-    attr_reader :reader, :http, :downloads_list_retries
-    private :reader, :http, :downloads_list_retries
+    attr_reader :reader, :http, :sleeper, :downloads_list_retries
+    private :reader, :http, :sleeper, :downloads_list_retries
 
     def call(sources_dir, opts)
       source = Source.new(opts["source"])
@@ -52,7 +54,7 @@ module BintrayResource
       end
     end
 
-    def list_in_downloads(source, basename, try: 1)
+    def list_in_downloads(source, basename, try: 1, sleep_time: 1)
       uri = source.base_uri + "/file_metadata/#{source.subject}/#{source.repo}/#{basename}"
       response = http.put(
         uri,
@@ -64,7 +66,11 @@ module BintrayResource
         response
       when FAILURE
         raise_failure("PUT", uri, response) if try == downloads_list_retries
-        list_in_downloads(source, basename, try: try + 1)
+        sleeper.sleep(sleep_time)
+        list_in_downloads(
+          source, basename,
+          try: try + 1, sleep_time: sleep_time * 2
+        )
       else
         raise_failure("PUT", uri, response)
       end

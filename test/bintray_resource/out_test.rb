@@ -165,18 +165,40 @@ module BintrayResource
       end
     end
 
-    def test_400_failure_in_downloads_list_tries_again
+    class SleeperSpy
+      attr_accessor :sleeps
+
+      def initialize
+        @sleeps = []
+      end
+
+      def sleep(seconds)
+        @sleeps << seconds
+      end
+    end
+
+    def test_400_failure_in_downloads_list_tries_again_with_backoff
+      sleeper = SleeperSpy.new
       resource = Out.new(
         reader: ReaderStub.new,
-        http: FakeHttp.new([200, 400, 400, 400, 200], '')
+        http: FakeHttp.new([200, 400, 400, 400, 200], ''),
+        sleeper: sleeper
       )
-      resource.call("/sources/path", @input_with_list)
+      normal_response = {"version" => {"ref" => nil},
+                         "metadata" => [{"name" => "response",
+                                         "value" => ""}]}
+      assert_equal(
+        normal_response,
+        resource.call("/sources/path", @input_with_list)
+      )
+      assert_equal([1, 2, 4], sleeper.sleeps)
     end
 
     def test_400_failure_has_retry_limit
       resource = Out.new(
         reader: ReaderStub.new,
         http: FakeHttp.new([200, 400, 400, 400], ''),
+        sleeper: SleeperSpy.new,
         downloads_list_retries: 3
       )
       assert_raises(BintrayResource::FailureResponse) do
