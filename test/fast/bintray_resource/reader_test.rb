@@ -31,7 +31,7 @@ module BintrayResource
         path = Pathname(dir)
         File.write(path.join("file1"), "1st match")
         File.write(path.join("file2"), "2nd match")
-        assert_raises(MultipleGlobMatches) do
+        assert_raises(Reader::MultipleGlobMatches) do
           Reader.new.read(path.join("file?"), ".*")
         end
       end
@@ -40,7 +40,7 @@ module BintrayResource
     def test_raises_exception_when_glob_has_no_matches
       Dir.mktmpdir do |dir|
         path = Pathname(dir)
-        assert_raises(NoGlobMatches) do
+        assert_raises(Reader::NoGlobMatches) do
           Reader.new.read(path.join("non-existent-*"), ".*")
         end
       end

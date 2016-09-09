@@ -1,8 +1,8 @@
 module BintrayResource
-  MultipleGlobMatches = Class.new(StandardError)
-  NoGlobMatches = Class.new(StandardError)
-
   class Reader
+    MultipleGlobMatches = Class.new(StandardError)
+    NoGlobMatches = Class.new(StandardError)
+
     def read(glob, version_regexp)
       entries = Dir.glob(glob)
       if entries.size > 1
