@@ -11,6 +11,8 @@ module BintrayResource
     attr_reader :reader, :upload
     private :reader, :upload
 
+    PIPELINE = [CreatePackage, UploadContent, ListInDownloads]
+
     def initialize(reader:, upload:)
       @reader = reader
       @upload = upload
@@ -19,25 +21,24 @@ module BintrayResource
     def call(sources_dir, opts)
       source = Source.new(opts["source"])
       params = OpenStruct.new(opts["params"])
-      contents, basename, version = reader.read(
+      reader_response = reader.read(
         Pathname(sources_dir).join(params.file).to_s,
         params.version_regexp
-      ).values_at(*%w(contents basename version))
+      )
 
-      responses = [
-        CreatePackage.new(source, params),
-        UploadContent.new(source, params, contents, version, basename),
-        ListInDownloads.new(source, params, basename),
-      ].select(&:applicable?).map { |datum|
-        upload.call(
-          datum.http_method,
-          datum.uri,
-          datum.body,
-          datum.headers
-        )
-      }
+      responses = PIPELINE.
+        map { |k| k.new(source, params, reader_response) }.
+        select(&:applicable?).
+        map { |datum|
+          upload.call(
+            datum.http_method,
+            datum.uri,
+            datum.body,
+            datum.headers
+          )
+        }
 
-      { "version"  => { "ref" => version },
+      { "version"  => { "ref" => reader_response.version },
         "metadata" => [{ "name" => "response",
                          "value" => responses[1].body }] }
     end

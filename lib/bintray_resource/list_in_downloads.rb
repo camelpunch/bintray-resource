@@ -5,10 +5,10 @@ module BintrayResource
     attr_reader :source, :params, :filename
     private :source, :params, :filename
 
-    def initialize(source, params, filename)
+    def initialize(source, params, reader_response)
       @source = source
       @params = params
-      @filename = filename
+      @filename = reader_response.filename
     end
 
     def applicable?

@@ -1,5 +1,17 @@
+require 'ostruct'
+
 module BintrayResource
   class Reader
+    class Response
+      attr_reader :filename, :version, :contents
+
+      def initialize(filename, version, contents)
+        @filename = filename
+        @version = version
+        @contents = contents
+      end
+    end
+
     MultipleGlobMatches = Class.new(StandardError)
     NoGlobMatches = Class.new(StandardError)
 
@@ -10,9 +22,11 @@ module BintrayResource
       elsif entries.empty?
         raise NoGlobMatches
       end
-      { "contents" => File.read(entries.first),
-        "basename" => File.basename(entries.first),
-        "version"  => version_from_filename(entries.first, version_regexp) }
+      Response.new(
+        File.basename(entries.first),
+        version_from_filename(entries.first, version_regexp),
+        File.read(entries.first),
+      )
     end
 
     private

@@ -4,6 +4,7 @@ require_relative '../../../lib/bintray_resource/out'
 require_relative '../../../lib/bintray_resource/upload'
 require_relative '../../doubles/fake_http'
 require_relative '../../doubles/upload_spy'
+require_relative '../../doubles/reader_stub'
 
 module BintrayResource
   class TestOut < Minitest::Test
@@ -37,11 +38,11 @@ module BintrayResource
           glob: "/sources/path/my-source/built-*.ez",
           regexp:  "my-source/(.*)/built-.*",
         },
-        to_return: {
-          "basename"  => "built-package12345.ez",
-          "contents"  => "my-sweet-file-contents",
-          "version"   => "3.6.5",
-        }
+        to_return: Reader::Response.new(
+          "built-package12345.ez",
+          "3.6.5",
+          "my-sweet-file-contents",
+        )
       )
       upload = UploadSpy.new([201, 200], "")
       resource = Out.new(reader: reader, upload: upload)
@@ -86,11 +87,11 @@ module BintrayResource
           glob: "/sources/path/my-source/built-*.ez",
           regexp:  "my-source/(.*)/built-.*",
         },
-        to_return: {
-          "basename"  => "built-package12345.ez",
-          "contents"  => "my-sweet-file-contents",
-          "version"   => "3.6.5",
-        }
+        to_return: Reader::Response.new(
+          "built-package12345.ez",
+          "3.6.5",
+          "my-sweet-file-contents",
+        )
       )
       upload = UploadSpy.new([201, 200, 200], "")
       resource = Out.new(reader: reader, upload: upload)
@@ -112,7 +113,7 @@ module BintrayResource
     end
 
     def test_emits_version_passed_to_it
-      reader = ReaderStub.new(to_return: { "version" => "1.2.3" })
+      reader = ReaderStub.new(to_return: Reader::Response.new("", "1.2.3", ""))
       retval = Out.new(reader: reader, upload: UploadSpy.new([201, 200])).
         call("/full/sources", @input)
       assert_equal({ "ref" => "1.2.3" }, retval["version"])
@@ -151,25 +152,6 @@ module BintrayResource
       )
       assert_raises(BintrayResource::Upload::FailureResponse) do
         resource.call("/sources/path", @input_with_list)
-      end
-    end
-
-    class ReaderStub
-      def initialize(stub: {}, to_return: {})
-        @stubs = stub
-        @read_return = to_return
-      end
-
-      def read(actual_glob, actual_regexp)
-        if @stubs.empty? || actual_glob == @stubs[:glob] && actual_regexp == @stubs[:regexp]
-          @read_return
-        else
-          {
-            "basename" => "notstubbed",
-            "contents" => "notstubbed",
-            "version" => "notstubbed",
-          }
-        end
       end
     end
   end

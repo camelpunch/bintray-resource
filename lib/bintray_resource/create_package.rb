@@ -5,7 +5,7 @@ module BintrayResource
     attr_reader :source, :params
     private :source, :params
 
-    def initialize(source, params)
+    def initialize(source, params, reader_response)
       @source = source
       @params = params
     end

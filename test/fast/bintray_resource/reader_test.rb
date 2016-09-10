@@ -2,17 +2,44 @@ require 'minitest/autorun'
 require 'pathname'
 require 'tmpdir'
 require_relative '../../../lib/bintray_resource/reader'
+require_relative '../../doubles/reader_stub'
 
 module BintrayResource
   class TestReader < Minitest::Test
+    def setup
+      @reader = Reader.new
+    end
+
+    def test_contract
+      Dir.mktmpdir do |dir|
+        path = Pathname(dir)
+        File.write(path.join("myfile"), "single match")
+        assert_kind_of Reader::Response, @reader.read(path.join("my*"), ".*")
+      end
+    end
+  end
+
+  class TestReaderStubEmpty < TestReader
+    def setup
+      @reader = ReaderStub.new
+    end
+  end
+
+  class TestReaderStubPrimed < TestReader
+    def setup
+      @reader = ReaderStub.new(stub: {}, to_return: Reader::Response.new("", "", ""))
+    end
+  end
+
+  class TestRealReader < TestReader
     def test_reads_file_with_single_glob_match
       Dir.mktmpdir do |dir|
         path = Pathname(dir)
         File.write(path.join("myfile"), "single match")
         result = Reader.new.read(path.join("my*"), ".*")
-        assert_equal "single match", result["contents"]
-        assert_equal "myfile", result["basename"]
-        assert_nil result["version"]
+        assert_equal "single match", result.contents
+        assert_equal "myfile", result.filename
+        assert_nil result.version
       end
     end
 
@@ -22,7 +49,7 @@ module BintrayResource
         path.join("my-1.2.3").mkpath
         File.write(path.join("my-1.2.3", "file"), "single match")
         result = Reader.new.read(path.join("my*/*"), "my-(.*)/file")
-        assert_equal("1.2.3", result["version"])
+        assert_equal("1.2.3", result.version)
       end
     end
 
