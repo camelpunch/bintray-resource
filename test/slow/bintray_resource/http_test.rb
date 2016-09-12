@@ -1,4 +1,5 @@
 require 'minitest/autorun'
+require 'minitest/focus'
 require 'json'
 require_relative '../../../lib/bintray_resource/http'
 require_relative '../../../test/doubles/fake_http'
@@ -10,7 +11,7 @@ module BintrayResource
     end
 
     def test_post_success_returns_code
-      response = @http.post("http://httpbin.org/post", "foobar", {})
+      response = @http.post("https://httpbin.org/post", "foobar", {})
       assert_equal 200, response.code
     end
 
