@@ -1,3 +1,4 @@
+require 'uri'
 require_relative 'sleeper'
 
 module BintrayResource
@@ -35,7 +36,8 @@ module BintrayResource
     private
 
     def raise_failure(method, uri, response)
-      raise FailureResponse, "#{method} to #{uri} failed with #{response.code}:\n#{response.body}"
+      parsed_uri = URI.parse(uri)
+      raise FailureResponse, "#{method} to #{parsed_uri.host}#{parsed_uri.path}?#{parsed_uri.query} failed with #{response.code}:\n#{response.body}"
     end
   end
 end

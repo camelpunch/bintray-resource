@@ -64,9 +64,14 @@ module BintrayResource
         sleeper: SleeperSpy.new,
         retries: 3
       )
-      assert_raises(BintrayResource::Upload::FailureResponse) do
-        upload.call(:put, "http://sources/path", "", {})
+      e = assert_raises(BintrayResource::Upload::FailureResponse) do
+        upload.call(:put, "http://myuser:mypass@sources.com/path?foo=bar", "", {})
       end
+
+      expected_put_target = Regexp.escape("sources.com/path?foo=bar")
+      assert_match /put to #{expected_put_target}/, e.message
+      refute_match /myuser/, e.message
+      refute_match /mypass/, e.message
     end
 
     def test_returns_conflict_failures_without_raising
