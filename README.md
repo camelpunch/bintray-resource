@@ -32,8 +32,6 @@ Out-only resource for pushing OSS content to Bintray.
 ### Resource type
 
 ``` yaml
-resource_types:
-
 - name: bintray
   type: docker-image
   source:
