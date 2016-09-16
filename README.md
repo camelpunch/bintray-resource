@@ -70,7 +70,11 @@ resource_types:
 The above plan will cause three requests to take place:
 
 1. POST to https://bintray.com/api/v1/packages/myorg/myrepo with JSON body. This creates the package.
-2. PUT to https://bintray.com/api/v1/content/myorg/myrepo/mypackage-globbed-stuff.ez?publish=1
-3. PUT to https://bintray.com/api/v1/file_metadata/myorg/myrepo/mypackage-globbed-stuff.ez with `{ "list_in_downloads" => true }`
+2. PUT to https://bintray.com/api/v1/content/myorg/myrepo/mypackage-globbed-stuff.ez?publish=1 with the file content.
+3. PUT to https://bintray.com/api/v1/file_metadata/myorg/myrepo/mypackage-globbed-stuff.ez with
+
+ ```json
+{ "list_in_downloads": true }
+```
 
 If Bintray responds with `409 Conflict` for any of the requests (i.e. resource already exists), future requests continue as if nothing happened. Any other `4xx` / `5xx` response raises an exception, visible in Concourse logs.
