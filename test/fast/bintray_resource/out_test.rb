@@ -99,7 +99,7 @@ module BintrayResource
       resource.call("/sources/path", @input_with_list)
 
       assert_equal(
-        "https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez",
+        "https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/3.6.5/built-package12345.ez",
         upload.uris.last
       )
       assert_equal(

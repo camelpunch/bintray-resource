@@ -20,7 +20,7 @@ module BintrayResource
       if entries.size > 1
         raise MultipleGlobMatches
       elsif entries.empty?
-        raise NoGlobMatches
+        raise NoGlobMatches, "Nothing matched '#{glob}'"
       end
       Response.new(
         File.basename(entries.first),

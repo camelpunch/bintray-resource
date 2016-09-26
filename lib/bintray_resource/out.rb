@@ -29,12 +29,12 @@ module BintrayResource
       responses = PIPELINE.
         map { |k| k.new(source, params, reader_response) }.
         select(&:applicable?).
-        map { |datum|
+        map { |request|
           upload.call(
-            datum.http_method,
-            datum.uri,
-            datum.body,
-            datum.headers
+            request.http_method,
+            request.uri,
+            request.body,
+            request.headers
           )
         }
 
