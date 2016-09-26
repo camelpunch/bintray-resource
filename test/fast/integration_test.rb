@@ -2,7 +2,7 @@ require 'minitest/autorun'
 require 'pathname'
 require 'json'
 
-class TestIntegration < Minitest::Test
+class TestFastIntegration < Minitest::Test
   def test_parsing
     exec_path = Pathname(__dir__).join("../../out")
     input = '{"source": {}, "params": {"file": "foo"}}'
