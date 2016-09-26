@@ -7,14 +7,13 @@ module BintrayResource
     SUCCESS = (0..399)
     ALREADY_EXISTS = 409
 
-    attr_reader :http, :sleeper, :retries, :backoff_factor
-    private :http, :sleeper, :retries, :backoff_factor
+    attr_reader :http, :sleeper, :retries
+    private :http, :sleeper, :retries
 
-    def initialize(http:, sleeper: Sleeper.new, retries: 10, backoff_factor: 2)
+    def initialize(http:, sleeper: Sleeper.new, retries: 10)
       @http = http
       @sleeper = sleeper
       @retries = retries
-      @backoff_factor = backoff_factor
     end
 
     def call(method, uri, contents,
@@ -29,7 +28,7 @@ module BintrayResource
         raise_failure(method, uri, response) if try == retries
         sleeper.sleep(sleep_time)
         call(method, uri, contents, headers,
-             try: try + 1, sleep_time: sleep_time * backoff_factor)
+             try: try + 1, sleep_time: sleep_time * 2)
       end
     end
 

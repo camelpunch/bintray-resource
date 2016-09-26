@@ -2,14 +2,13 @@ require 'json'
 
 module BintrayResource
   class ListInDownloads
-    attr_reader :source, :params, :filename, :version
-    private :source, :params, :filename, :version
+    attr_reader :source, :params, :filename
+    private :source, :params, :filename
 
     def initialize(source, params, reader_response)
-      @filename = reader_response.filename
-      @params = params
       @source = source
-      @version = reader_response.version
+      @params = params
+      @filename = reader_response.filename
     end
 
     def applicable?
@@ -25,7 +24,6 @@ module BintrayResource
         "file_metadata",
         source.subject,
         source.repo,
-        version,
         filename ].join("/")
     end
 
