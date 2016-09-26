@@ -34,64 +34,39 @@ module BintrayResource
 
     def test_create_and_upload
       reader = ReaderStub.new(
-        stub: {
-          glob: "/sources/path/my-source/built-*.ez",
-          regexp:  "my-source/(.*)/built-.*",
-        },
-        to_return: Reader::Response.new(
-          "built-package12345.ez",
-          "3.6.5",
-          "my-sweet-file-contents",
-        )
+        stub: { glob: "/sources/path/my-source/built-*.ez", regexp: "my-source/(.*)/built-.*", },
+        to_return: Reader::Response.new("built-package12345.ez",
+                                        "3.6.5",
+                                        "my-sweet-file-contents")
       )
       upload = UploadSpy.new([201, 200], "")
       resource = Out.new(reader: reader, upload: upload)
 
       resource.call("/sources/path", @input)
 
-      assert_equal(
-        %w(
-          https://myuser:abcde123456@bintray.com/api/v1/packages/rabbitmq/community-plugins
-          https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
-        ),
-        upload.uris
+      expected_uris = %w(
+        https://myuser:abcde123456@bintray.com/api/v1/packages/rabbitmq/community-plugins
+        https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
       )
-      assert_equal(
-        %i(
-          post
-          put
-        ),
-        upload.http_methods
-      )
-      assert_equal(
-        [
-          JSON.generate("name" => "rabbitmq_clusterer",
-                        "licenses" => ["Mozilla-1.1"],
-                        "vcs_url" => "https://github.com/rabbitmq/rabbitmq-clusterer"),
-          "my-sweet-file-contents"
-        ],
-        upload.contents
-      )
-      assert_equal(
-        [
-          {"Content-Type" => "application/json"},
-          {"Content-Type" => "application/octet-stream"},
-        ],
-        upload.headers
-      )
+      assert_equal(expected_uris, upload.uris)
+      assert_equal(%i(post put), upload.http_methods)
+
+      expected_json = JSON.generate("name" => "rabbitmq_clusterer",
+                                    "licenses" => ["Mozilla-1.1"],
+                                    "vcs_url" => "https://github.com/rabbitmq/rabbitmq-clusterer")
+      assert_equal([ expected_json, "my-sweet-file-contents" ], upload.contents)
+
+      expected_headers = [ {"Content-Type" => "application/json"},
+                           {"Content-Type" => "application/octet-stream"}, ]
+      assert_equal(expected_headers, upload.headers)
     end
 
     def test_uploads_and_makes_available_in_downloads_list
       reader = ReaderStub.new(
-        stub: {
-          glob: "/sources/path/my-source/built-*.ez",
-          regexp:  "my-source/(.*)/built-.*",
-        },
-        to_return: Reader::Response.new(
-          "built-package12345.ez",
-          "3.6.5",
-          "my-sweet-file-contents",
-        )
+        stub: { glob: "/sources/path/my-source/built-*.ez", regexp: "my-source/(.*)/built-.*" },
+        to_return: Reader::Response.new("built-package12345.ez",
+                                        "3.6.5",
+                                        "my-sweet-file-contents")
       )
       upload = UploadSpy.new([201, 200, 200], "")
       resource = Out.new(reader: reader, upload: upload)
