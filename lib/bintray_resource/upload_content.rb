@@ -26,7 +26,7 @@ module BintrayResource
         source.repo,
         source.package,
         version,
-        "#{filename}?publish=#{uri_bool(params.publish)}" ].join("/")
+        "#{filename}#{matrix_params}" ].join("/")
     end
 
     def body
@@ -38,6 +38,28 @@ module BintrayResource
     end
 
     private
+
+    def matrix_params
+      matrixify(matrix_kvs)
+    end
+
+    def matrix_kvs
+      default_matrix_kvs.merge(params.prefixed_params)
+    end
+
+    def matrixify(kvs)
+      kvs.reduce("") { |acc, (key, value)|
+        acc + ";#{key}=#{join(value)}"
+      }
+    end
+
+    def join(val)
+      val.respond_to?(:join) ? val.join(',') : val
+    end
+
+    def default_matrix_kvs
+      {"publish" => uri_bool(params.publish)}
+    end
 
     def uri_bool(bool)
       bool ? "1" : "0"

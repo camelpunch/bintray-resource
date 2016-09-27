@@ -4,6 +4,13 @@ require_relative 'http_response'
 
 module BintrayResource
   class Http
+    attr_reader :logger
+    private     :logger
+
+    def initialize(logger)
+      @logger = logger
+    end
+
     def post(*args)
       put_or_post(:post, *args)
     end
@@ -24,10 +31,22 @@ module BintrayResource
         request[k] = v
       end
 
+      logger.log("#{method.upcase} #{uri}")
+      logger.log(string_kvs(headers))
       response = Net::HTTP.start(u.hostname, u.port, use_ssl: u.scheme == 'https') {|http|
         http.request(request)
       }
+      logger.log(response.code)
+      logger.log(response.body)
       HttpResponse.new(response.code.to_i, response.body)
+    end
+
+    private
+
+    def string_kvs(headers)
+      headers.
+        map {|k, v| "#{k}: #{v}"}.
+        join("\n")
     end
   end
 end

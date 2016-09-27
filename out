@@ -7,7 +7,11 @@ opts = JSON.parse($stdin.gets)
 out = BintrayResource::Out.new(
   reader: BintrayResource::Reader.new, 
   upload: BintrayResource::Upload.new(
-    http: BintrayResource::Http.new
+    http: BintrayResource::Http.new(
+      BintrayResource::NullLogger.new
+      # Useful for debugging
+      # BintrayResource::PutsLogger.new($stdout)
+    )
   )
 )
 puts JSON.generate(out.call(ARGV.first, opts))

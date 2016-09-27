@@ -1,8 +1,8 @@
 require 'json'
-require 'ostruct'
 require 'pathname'
 require_relative 'create_package'
 require_relative 'list_in_downloads'
+require_relative 'params'
 require_relative 'source'
 require_relative 'upload_content'
 
@@ -20,7 +20,7 @@ module BintrayResource
 
     def call(sources_dir, opts)
       source = Source.new(opts["source"])
-      params = OpenStruct.new(opts["params"])
+      params = Params.new(opts["params"])
       reader_response = reader.read(
         Pathname(sources_dir).join(params.file).to_s,
         params.version_regexp

@@ -20,14 +20,14 @@ module BintrayResource
 
       resource.call("/sources/path", generic_input)
 
-      expected_uris = %w(
-        https://myuser:abcde123456@bintray.com/api/v1/packages/rabbitmq/community-plugins
-        https://myuser:abcde123456@bintray.com/api/v1/content/rabbitmq/community-plugins/rabbitmq_clusterer/3.6.5/built-package12345.ez?publish=1
-      )
+      expected_uris = [
+        "#{expected_uri_prefix}/packages/#{subject}/#{repo}",
+        "#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/3.6.5/built-package12345.ez;publish=1",
+      ]
       assert_equal(expected_uris, upload.uris)
       assert_equal(%i(post put), upload.http_methods)
 
-      expected_json = JSON.generate("name" => "rabbitmq_clusterer",
+      expected_json = JSON.generate("name" => package,
                                     "licenses" => ["Mozilla-1.1"],
                                     "vcs_url" => "https://github.com/rabbitmq/rabbitmq-clusterer")
       assert_equal([ expected_json, "my-sweet-file-contents" ], upload.contents)
@@ -50,7 +50,7 @@ module BintrayResource
       resource.call("/sources/path", generic_input_with_list)
 
       assert_equal(
-        "https://myuser:abcde123456@bintray.com/api/v1/file_metadata/rabbitmq/community-plugins/built-package12345.ez",
+        "#{expected_uri_prefix}/file_metadata/#{subject}/#{repo}/built-package12345.ez",
         upload.uris.last
       )
       assert_equal(
@@ -61,6 +61,34 @@ module BintrayResource
         {"Content-Type" => "application/json"},
         upload.headers.last
       )
+    end
+
+    def test_debian_upload
+      reader = ReaderStub.new(
+        stub: { glob: "/sources/path/my-source/built-*.deb", regexp: "my-source/(.*)/built-.*" },
+        to_return: Reader::Response.new("built-package12345.deb",
+                                        "3.6.5",
+                                        "my-sweet-file-contents")
+      )
+      upload = UploadSpy.new([201, 200], "")
+      resource = Out.new(reader: reader, upload: upload)
+
+      debian_input = generic_input.merge(
+        "params" => generic_input["params"].merge(
+          "file" => "my-source/built-*.deb",
+          "debian" => {
+            "distribution"  => %w(wheezy jessie),
+            "component"     => %w(main contrib non-free),
+            "architecture"  => %w(i386 amd64),
+          }
+        )
+      )
+
+      resource.call("/sources/path", debian_input)
+
+      expected_http_matrix_params = ";publish=1;deb_distribution=wheezy,jessie;deb_component=main,contrib,non-free;deb_architecture=i386,amd64"
+      assert_equal("#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/3.6.5/built-package12345.deb#{expected_http_matrix_params}",
+                   upload.uris[1])
     end
 
     def test_emits_version_passed_to_it
@@ -109,11 +137,11 @@ module BintrayResource
     def generic_input
       {
         "source" => {
-          "api_key"         => "abcde123456",
-          "package"         => "rabbitmq_clusterer",
-          "repo"            => "community-plugins",
-          "subject"         => "rabbitmq",
-          "username"        => "myuser",
+          "api_key"         => api_key,
+          "package"         => package,
+          "repo"            => repo,
+          "subject"         => subject,
+          "username"        => username,
         },
         "params" => {
           "file"            => "my-source/built-*.ez",
@@ -131,6 +159,30 @@ module BintrayResource
           "list_in_downloads" => true
         )
       )
+    end
+
+    def expected_uri_prefix
+      "https://#{username}:#{api_key}@bintray.com/api/v1"
+    end
+
+    def username
+      "myuser"
+    end
+
+    def api_key
+      "abcde123456"
+    end
+
+    def package
+      "rabbitmq_clusterer"
+    end
+
+    def subject
+      "rabbitmq"
+    end
+
+    def repo
+      "community-plugins"
     end
   end
 end
