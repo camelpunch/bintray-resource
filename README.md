@@ -1,6 +1,6 @@
 # Bintray Resource
 
-Out-only resource for pushing OSS content to Bintray.
+Out-only resource for pushing content to Bintray.
 
 ## Source Configuration
 
