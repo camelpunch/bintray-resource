@@ -1,5 +1,3 @@
-require 'ostruct'
-
 module BintrayResource
   class Reader
     class Response

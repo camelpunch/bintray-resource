@@ -1,5 +1,3 @@
-require 'ostruct'
-
 module BintrayResource
   class Params
     attr_reader :file, :version_regexp, :list_in_downloads, :licenses, :vcs_url, :publish
