@@ -58,7 +58,7 @@ Out-only resource for pushing OSS content to Bintray.
 ``` yaml
 - put: release
   params:
-    file: some-output/*/mypackage-*.ez
+    file: some-output/*/mypackage-*.deb
     version_regexp: some-output/(.*)/.*
     publish: true
     list_in_downloads: true
@@ -80,8 +80,8 @@ Out-only resource for pushing OSS content to Bintray.
 The above plan will cause three requests to take place:
 
 1. POST to https://bintray.com/api/v1/packages/myorg/myrepo with JSON body. This creates the package.
-2. PUT to https://bintray.com/api/v1/content/myorg/myrepo/mypackage-globbed-stuff.ez;publish=1;deb_distribution=wheezy,jessie,stretch;deb_component=main,contrib;deb_architecture=i386,amd64 with the file content.
-3. PUT to https://bintray.com/api/v1/file_metadata/myorg/myrepo/mypackage-globbed-stuff.ez with
+2. PUT to https://bintray.com/api/v1/content/myorg/myrepo/mypackage-globbed-stuff.deb;publish=1;deb_distribution=wheezy,jessie,stretch;deb_component=main,contrib;deb_architecture=i386,amd64 with the file content.
+3. PUT to https://bintray.com/api/v1/file_metadata/myorg/myrepo/mypackage-globbed-stuff.deb with
 
  ```json
 { "list_in_downloads": true }
