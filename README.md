@@ -37,7 +37,7 @@ Out-only resource for pushing OSS content to Bintray.
   type: docker-image
   source:
     repository: camelpunch/bintray-resource
-    tag: v0.2 # optional, but shields you from breaking API changes
+    tag: v0.3 # optional, but shields you from breaking API changes
 ```
 
 ### Resource
