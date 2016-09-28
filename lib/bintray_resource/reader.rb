@@ -12,6 +12,8 @@ module BintrayResource
 
     MultipleGlobMatches = Class.new(StandardError)
     NoGlobMatches = Class.new(StandardError)
+    NoRegexpMatch = Class.new(StandardError)
+    NoRegexpGroups = Class.new(StandardError)
 
     def read(glob, version_regexp)
       entries = Dir.glob(glob)
@@ -31,7 +33,14 @@ module BintrayResource
 
     def version_from_filename(filename, regexp)
       Regexp.new(regexp) =~ filename
-      Regexp.last_match[1]
+      groups = Regexp.last_match
+      if groups && groups[1]
+        groups[1]
+      elsif groups
+        raise NoRegexpGroups
+      else
+        raise NoRegexpMatch
+      end
     end
   end
 end
