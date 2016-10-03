@@ -26,6 +26,7 @@ Out-only resource for pushing content to Bintray.
 * `list_in_downloads`: *Optional.* Whether to list the uploaded file in the downloads list.
 * `licenses`: *Required.* A list of licenses which must match those available on Bintray.
 * `vcs_url`: *Required.* The URI for the package's public version control.
+* `gpg_passphrase`: *Optional.* The passphrase for your signing key, if you have one.
 * `debian`: *Optional* Debian repo configuration. See the example below for keys.
 
 ## Example Configuration
@@ -64,6 +65,7 @@ Out-only resource for pushing content to Bintray.
     list_in_downloads: true
     licenses: ["Mozilla-1.1"]
     vcs_url: https://github.com/myorg/my-product
+    gpg_passphrase: foobarbaz
     debian: # you obviously wouldn't include this for non-debian packages
       distribution:
         - wheezy
@@ -80,7 +82,7 @@ Out-only resource for pushing content to Bintray.
 The above plan will cause three requests to take place:
 
 1. POST to https://bintray.com/api/v1/packages/myorg/myrepo with JSON body. This creates the package.
-2. PUT to https://bintray.com/api/v1/content/myorg/myrepo/mypackage-globbed-stuff.deb;publish=1;deb_distribution=wheezy,jessie,stretch;deb_component=main,contrib;deb_architecture=i386,amd64 with the file content.
+2. PUT to https://bintray.com/api/v1/content/myorg/myrepo/mypackage-globbed-stuff.deb;publish=1;deb_distribution=wheezy,jessie,stretch;deb_component=main,contrib;deb_architecture=i386,amd64 with the file content. The GPG passphrase is sent in the 'X-GPG-PASSPHRASE' header.
 3. PUT to https://bintray.com/api/v1/file_metadata/myorg/myrepo/mypackage-globbed-stuff.deb with
 
  ```json
