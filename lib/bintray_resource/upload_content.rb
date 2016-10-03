@@ -34,7 +34,11 @@ module BintrayResource
     end
 
     def headers
-      {'Content-Type' => 'application/octet-stream'}
+      if params.gpg_passphrase
+        default_headers.merge('X-GPG-PASSPHRASE' => params.gpg_passphrase)
+      else
+        default_headers
+      end
     end
 
     private
@@ -59,6 +63,10 @@ module BintrayResource
 
     def default_matrix_kvs
       {"publish" => uri_bool(params.publish)}
+    end
+
+    def default_headers
+      {'Content-Type' => 'application/octet-stream'}
     end
 
     def uri_bool(bool)

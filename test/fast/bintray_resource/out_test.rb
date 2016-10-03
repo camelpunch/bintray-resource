@@ -76,6 +76,7 @@ module BintrayResource
       debian_input = generic_input.merge(
         "params" => generic_input["params"].merge(
           "file" => "my-source/built-*.deb",
+          "gpg_passphrase" => "my great passphrase",
           "debian" => {
             "distribution"  => %w(wheezy jessie),
             "component"     => %w(main contrib non-free),
@@ -89,6 +90,7 @@ module BintrayResource
       expected_http_matrix_params = ";publish=1;deb_distribution=wheezy,jessie;deb_component=main,contrib,non-free;deb_architecture=i386,amd64"
       assert_equal("#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/3.6.5/built-package12345.deb#{expected_http_matrix_params}",
                    upload.uris[1])
+      assert_equal("my great passphrase", upload.headers.last['X-GPG-PASSPHRASE'])
     end
 
     def test_emits_version_passed_to_it
