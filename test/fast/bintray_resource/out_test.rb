@@ -97,7 +97,7 @@ module BintrayResource
       reader = ReaderStub.new(to_return: Reader::Response.new("", "1.2.3", ""))
       retval = Out.new(reader: reader, upload: UploadSpy.new([201, 200])).
         call("/full/sources", generic_input)
-      assert_equal({ "ref" => "1.2.3" }, retval["version"])
+      assert_equal({ "ref" => "v1.2.3" }, retval["version"])
     end
 
     def test_result_of_put_is_placed_in_metadata

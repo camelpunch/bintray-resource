@@ -38,7 +38,7 @@ module BintrayResource
           )
         }
 
-      { "version"  => { "ref" => reader_response.version },
+      { "version"  => { "ref" => "#{params.version_prefix}#{reader_response.version}" },
         "metadata" => [{ "name" => "response",
                          "value" => responses[1].body }] }
     end
