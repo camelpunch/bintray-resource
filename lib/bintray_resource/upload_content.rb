@@ -1,13 +1,14 @@
 module BintrayResource
   class UploadContent
-    attr_reader :source, :params, :contents, :version, :filename
-    private :source, :params, :contents, :version, :filename
+    attr_reader :source, :params, :contents, :version, :version_prefix, :filename
+    private :source, :params, :contents, :version, :version_prefix, :filename
 
     def initialize(source, params, reader_response)
       @source = source
       @params = params
       @contents = reader_response.contents
       @version = reader_response.version
+      @version_prefix = params.version_prefix
       @filename = reader_response.filename
     end
 
@@ -25,7 +26,7 @@ module BintrayResource
         source.subject,
         source.repo,
         source.package,
-        version,
+        prefixed_version,
         "#{filename}#{matrix_params}" ].join("/")
     end
 
@@ -55,6 +56,10 @@ module BintrayResource
       kvs.reduce("") { |acc, (key, value)|
         acc + ";#{key}=#{join(value)}"
       }
+    end
+
+    def prefixed_version
+      "#{version_prefix}#{version}"
     end
 
     def join(val)

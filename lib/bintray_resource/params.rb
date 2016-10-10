@@ -1,12 +1,12 @@
 module BintrayResource
   class Params
-    attr_reader :file, :version_regexp, :list_in_downloads, :licenses, :vcs_url, :publish, :gpg_passphrase
+    attr_reader :file, :version_prefix, :version_regexp, :list_in_downloads, :licenses, :vcs_url, :publish, :gpg_passphrase
     attr_reader :raw_input
     private     :raw_input
 
     def initialize(kvs)
-      @file, @version_regexp, @list_in_downloads, @licenses, @vcs_url, @publish, @gpg_passphrase =
-        kvs.values_at(*%w(file version_regexp list_in_downloads licenses vcs_url publish gpg_passphrase))
+      @file, @version_prefix, @version_regexp, @list_in_downloads, @licenses, @vcs_url, @publish, @gpg_passphrase =
+        kvs.values_at(*%w(file version_prefix version_regexp list_in_downloads licenses vcs_url publish gpg_passphrase))
       @raw_input = kvs
     end
 

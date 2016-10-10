@@ -22,7 +22,7 @@ module BintrayResource
 
       expected_uris = [
         "#{expected_uri_prefix}/packages/#{subject}/#{repo}",
-        "#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/3.6.5/built-package12345.ez;publish=1",
+        "#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/v3.6.5/built-package12345.ez;publish=1",
       ]
       assert_equal(expected_uris, upload.uris)
       assert_equal(%i(post put), upload.http_methods)
@@ -88,7 +88,7 @@ module BintrayResource
       resource.call("/sources/path", debian_input)
 
       expected_http_matrix_params = ";publish=1;deb_distribution=wheezy,jessie;deb_component=main,contrib,non-free;deb_architecture=i386,amd64"
-      assert_equal("#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/3.6.5/built-package12345.deb#{expected_http_matrix_params}",
+      assert_equal("#{expected_uri_prefix}/content/#{subject}/#{repo}/#{package}/v3.6.5/built-package12345.deb#{expected_http_matrix_params}",
                    upload.uris[1])
       assert_equal("my great passphrase", upload.headers.last['X-GPG-PASSPHRASE'])
     end
@@ -149,6 +149,7 @@ module BintrayResource
           "file"            => "my-source/built-*.ez",
           "publish"         => true,
           "version_regexp"  => "my-source/(.*)/built-.*",
+          "version_prefix"  => "v",
           "licenses"        => ["Mozilla-1.1"],
           "vcs_url"         => "https://github.com/rabbitmq/rabbitmq-clusterer",
         },
