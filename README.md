@@ -22,6 +22,8 @@ Out-only resource for pushing content to Bintray.
   parameter.
 * `version_regexp`: *Required.* The pattern to match filenames against on disk. The first
   grouped match is used to extract the version.
+* `version_prefix`: *Optional.* Useful for adding a 'v' to the start of the
+  uploaded version.
 * `publish`: *Optional.* Whether to mark the uploaded content as published.
 * `list_in_downloads`: *Optional.* Whether to list the uploaded file in the downloads list.
 * `licenses`: *Required.* A list of licenses which must match those available on Bintray.
@@ -61,6 +63,7 @@ Out-only resource for pushing content to Bintray.
   params:
     file: some-output/*/mypackage-*.deb
     version_regexp: some-output/(.*)/.*
+    version_prefix: v
     publish: true
     list_in_downloads: true
     licenses: ["Mozilla-1.1"]
