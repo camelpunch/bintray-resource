@@ -33,7 +33,6 @@ module BintrayResource
       assert_equal "application/foofy", JSON.parse(response.body)["headers"]["Content-Type"]
     end
 
-    focus
     def test_logging
       log_collector = LogCollector.new
       @http = Http.new(log_collector)
